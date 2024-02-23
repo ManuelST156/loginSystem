@@ -1,59 +1,107 @@
+const wrapper= document.querySelector('.wrapper');
+const loginlink= document.querySelector('.login-link');
+const registerlink= document.querySelector('.register-link');
+const btnPopup= document.querySelector('.btnlogin-popup');
+
+const ApiURL='https://localhost:7224/api/Auth/'; 
+
+//https://localhost:7224/api/Auth/login
+
+let responseData='';
 
 
-function Login(){
-    let userName=document.getElementById("Email");
 
-    let password=document.getElementById("password");
-
-   /*  userName.style.borderColor="black";
-    password.style.borderColor="black"; */
-
-    let usuario="Manuel@sa.com";
-    let contraseña="Manuel123#";
-
-    console.log(userName);
-    console.log(password);
+registerlink.addEventListener('click',()=>{
+    wrapper.classList.add('active');
+});
 
 
-    if((userName.value==usuario) && (password.value== contraseña))
+loginlink.addEventListener('click',()=>{
+    wrapper.classList.remove('active');
+});
+
+
+btnPopup.addEventListener('click',()=>{
+    wrapper.classList.add('active-popup');
+});
+
+
+
+
+
+async function Login(){
+    let userName=document.getElementById("Email").value;
+
+    let password=document.getElementById("password").value;
+
+    var Data={
+        "correoElectronico": userName,
+        "clave": password
+    };
+
+
+   var url= ApiURL+'login'; 
+
+   try 
     {
-        let fecha=new Date();
-        let horas= fecha.getHours();
+    const response= await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(Data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 
-        console.log(fecha);
+    console.log(Data);
+    responseData = await response.text();
 
+    console.log('Respuesta del API:', responseData);
+    } 
+    catch (error) 
+    {
+        console.error('Error en la solicitud:', error); 
+        
+    }
+
+    
+    
+
+    //mensajito
+
+    let fecha=new Date();
+    let horas= fecha.getHours();
+
+    
+    if(responseData=='Usuario Incorrecto')
+    {
+        alert("Usuario Incorrecto");
+        let inputboxUN= document.getElementById("userName");
+         inputboxUN.style.borderColor="red";
+
+    }
+    else if(responseData=='Contraseña incorrecta')
+    {
+        alert("Contraseña Erronea");
+        let inputboxP= document.getElementById("password");
+        inputboxP.style.borderColor="red";
+    }
+    else
+    {
         console.log(horas);
-
-        if(horas<18)
+        if(horas<18&&horas>12)
         {
             alert("Buenas Tardes! Ha accedido a su sistema");
         }
-        else if(horas>19) {
-            alert("Buenas Noches! Ha accedido a su sistema"); 
+        else if(horas>6 && horas<12) {
+            alert("Buenos Dias! Ha accedido a su sistema"); 
         }
-
-
-        
-    }
-    else if((userName.value==usuario) && (password.value!= contraseña)){
-        alert("Contraseña Erronea");
-        let inputboxP= document.getElementById("password");
-        /* inputboxP.style.borderColor="red"; */
-    }
-    else if((userName.value!=usuario) && (password.value== contraseña)){
-        alert("Usuario Incorrecto");
-        let inputboxUN= document.getElementById("userName");
-       /*  inputboxUN.style.borderColor="red"; */
-    }
-    else{
-        alert("Usuario y Contraseña Invalida");
-        let inputboxUN= document.getElementById("userName");
-        let inputboxP= document.getElementById("password");
-
-      /*   inputboxUN.style.borderColor="red";
-        inputboxP.style.borderColor="red"; */
+        else
+        {
+            alert("Buenas Noches! Ha accedido a su sistema: "); 
+        }
     }
 
+    
 }
 
 let reloj=document.getElementById("reloj");
@@ -68,4 +116,59 @@ let reloj=document.getElementById("reloj");
     
 
 
-    }, 1000);
+}, 1000);
+
+async function Register()
+{
+    let Email=document.getElementById("EmailR").value;
+
+    let password=document.getElementById("PassR").value;
+
+    let userName=document.getElementById("UserR").value;
+
+    console.log(Email);
+    console.log(password);
+    console.log(userName);
+
+    var Data={};
+
+    Data.nombreUsuario=userName;
+    Data.correoElectronico=Email;
+    Data.clave=password;
+
+
+   var url= ApiURL+'register'; 
+
+   try 
+   {
+   const response= await fetch(url, {
+       method: 'POST',
+       body: JSON.stringify(Data),
+       headers: {
+           'Content-Type': 'application/json'
+       }
+   });
+
+   if(response!=null)
+   {
+    console.log(Data);
+    console.log(response);
+    wrapper.classList.remove('active');
+    
+    document.getElementById("EmailR").value=" ";
+
+    document.getElementById("PassR").value="";
+
+    document.getElementById("UserR").value=" ";
+
+   }
+   
+
+   alert("Usted acaba de ser registrado en nuestros sistemas");
+   } 
+   catch (error) 
+   {
+       console.error('Error en la solicitud:', error); 
+       
+   }
+}

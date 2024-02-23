@@ -128,3 +128,4 @@ C:\Users\MANUEL\Desktop\Proyectos Personales\Proyectos Creados\LoginSystem\Login
 C:\Users\MANUEL\Desktop\Proyectos Personales\Proyectos Creados\LoginSystem\LoginBackend\UsuarioLogin\UsuarioLogin\obj\Debug\net6.0\UsuarioLogin.pdb
 C:\Users\MANUEL\Desktop\Proyectos Personales\Proyectos Creados\LoginSystem\LoginBackend\UsuarioLogin\UsuarioLogin\obj\Debug\net6.0\UsuarioLogin.genruntimeconfig.cache
 C:\Users\MANUEL\Desktop\Proyectos Personales\Proyectos Creados\LoginSystem\LoginBackend\UsuarioLogin\UsuarioLogin\obj\Debug\net6.0\ref\UsuarioLogin.dll
+C:\Users\MANUEL\Desktop\Proyectos Personales\Proyectos Creados\LoginSystem\LoginBackend\UsuarioLogin\UsuarioLogin\obj\Debug\net6.0\UsuarioLogin.sourcelink.json

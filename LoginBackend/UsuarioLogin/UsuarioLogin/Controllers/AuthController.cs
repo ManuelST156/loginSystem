@@ -24,7 +24,7 @@ namespace UsuarioLogin.Controllers
 
         }
 
-        public static Usuario usuario= new Usuario();
+        //public static Usuario usuario= new Usuario();
 
 
         
@@ -35,11 +35,17 @@ namespace UsuarioLogin.Controllers
         {
             CreatePasswordHash(usuariodto.Clave, out byte[] passwordHash, out byte[] passwordSalt);
 
-
-            usuario.NombreUsuario=usuariodto.NombreUsuario;
-            usuario.CorreoElectronico=usuariodto.CorreoElectronico;
-            usuario.ClaveHash = passwordHash;
-            usuario.ClaveSalt = passwordSalt;
+            var usuario = new Usuario()
+            {
+                NombreUsuario = usuariodto.NombreUsuario,
+                CorreoElectronico = usuariodto.CorreoElectronico,
+                ClaveHash = passwordHash,
+                ClaveSalt = passwordSalt,
+            };
+            
+                
+            
+            
 
 
             ManaUsersContext.Add(usuario);
@@ -50,17 +56,19 @@ namespace UsuarioLogin.Controllers
 
         [HttpPost("login")]
 
-        public async Task<ActionResult<string>>Login(UsuariosDTO usuariosDTO)
+        public async Task<ActionResult<string>>Login(UsuariosLogDTO usuariosDTO)
         {
             
-            var user= await ManaUsersContext.Usuarios.Where(u => u.NombreUsuario == usuariosDTO.NombreUsuario)
+            var user= await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
                 .Select(u=>u.NombreUsuario).SingleOrDefaultAsync();
 
-            var contraHash = await ManaUsersContext.Usuarios.Where(u=>u.NombreUsuario==usuariosDTO.NombreUsuario)
+            var contraHash = await ManaUsersContext.Usuarios.Where(u=>u.CorreoElectronico==usuariosDTO.CorreoElectronico)
                 .Select(u=>u.ClaveHash).SingleOrDefaultAsync();
 
-            var contraSalt = await ManaUsersContext.Usuarios.Where(u => u.NombreUsuario == usuariosDTO.NombreUsuario)
+            var contraSalt = await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
                 .Select(u => u.ClaveSalt).SingleOrDefaultAsync();
+
+            
 
             if (user==null)
             {
