@@ -1,12 +1,20 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MimeKit;
+using MimeKit.Text;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using UsuarioLogin.DTO;
 using UsuarioLogin.Models;
+using MailKit.Net.Smtp;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace UsuarioLogin.Controllers
 {
@@ -84,6 +92,56 @@ namespace UsuarioLogin.Controllers
             return Ok(Token);
             
         }
+
+
+        [HttpPost]
+
+        public IActionResult SendEmail(string body, string subject, string dirigido)
+        {
+            //var email = new MimeMessage();
+            //email.From.Add(MailboxAddress.Parse("cody30@ethereal.email"));
+            //email.To.Add(MailboxAddress.Parse("cody30@ethereal.email"));
+            //email.Subject = "Prueba de Email";
+            //email.Body = new TextPart(TextFormat.Html)
+            //{
+            //    Text = body
+            //};
+
+            //using var smtp = new SmtpClient();
+            //smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
+            //smtp.Authenticate("cody30@ethereal.email", "jQGc4TcuSqUDcNr2pp");
+            //smtp.Send(email);
+            //smtp.Disconnect(true);
+
+            string fromMail = "eldeveloper62@gmail.com";
+            string fromPass = "zfqoggimvcvguzus";
+
+            MailMessage email = new MailMessage();
+            email.From = new MailAddress(fromMail);
+            email.Subject = subject;
+
+            email.To.Add(new MailAddress(dirigido));
+
+            email.Body = body;
+
+            email.IsBodyHtml = true;
+
+            var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential(fromMail, fromPass),
+                EnableSsl = true,
+            };
+
+
+            smtpClient.Send(email);
+
+            return Ok();
+
+        }
+
+
+
 
 
         private string CreateToken(string usuario)
