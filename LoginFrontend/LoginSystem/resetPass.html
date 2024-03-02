@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="reset">
+        <div class="form-box register">
+            <h2>Nueva Contraseña</h2>
+            <form action="#">
+            
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="lock-Closed"></ion-icon></span>
+                    <input type="password" required id="Pass"> 
+                    <label>Contraseña</label>
+                </div>
+
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="lock-Closed"></ion-icon></span>
+                    <input type="password" required id="PassConfirmacion"> 
+                    <label>Confirmación de Contraseña</label>
+                </div>
+            
+            
+                <button type="submit" onclick="resetearPass()" class="btn">Registrarse</button>
+                <div class="login-register">
+                    <p>Tienes una cuenta? <a href="#" class="login-link"> Iniciar Sesión </a></p>
+                </div>
+            
+            </form>
+            
+        </div>
+        
+    </div>
+        
+
+    <script src="ResetScript.js"></script>
+    <scrip type="module" src="https://unpkg.com/ioniconse7.1.0/dist/ionicons/ionicons.esi"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.8/dist/ionicons/ionicons.js"></script>
+    
+</body>
+</html>

@@ -10,5 +10,13 @@ namespace UsuarioLogin.Models
         public string? CorreoElectronico { get; set; }
         public byte[]? ClaveHash { get; set; }
         public byte[]? ClaveSalt { get; set; }
+
+        public string? tokenVerificacion { get; set; }
+
+        public DateTime? tokenDate { get; set; }
+
+        public string? tokenResetClave { get; set; }
+
+        public DateTime? tokenExpResetClave { get; set; }
     }
 }

@@ -10,14 +10,17 @@
     <header>
         <h2 cLass="logo">El Inicio</h2>
         <nav class="navigation">
-            <a href="#">Inicio</a>
+            <a href="index.html">Inicio</a>
             <a href="#">Ver Usuarios</a>
             <a href="#">Sobre Pagina</a>
             <a href="#" id="reloj">reloj</a>
-            <button class="btnlogin-popup">Iniciar Sesion</button>
+            <button class="btnlogin-popup" id="IS">Iniciar Sesion</button>
+            <button class="btnlogin-popup" id="CS" onclick="LogOut()" hidden>Cerra Sesion</button>
         </nav>
     </header>
         
+
+
     <div class="wrapper">
         <div cLass="form-box login">
             <h2>Iniciar Sesion</h2>
@@ -32,9 +35,9 @@
                     <input type="password" required id="password">
                     <label>Contraseña</1abel>
                 </div>
-                <div class="ingat">
+                <div class="forgotPass">
                     <label><input type="checkbox">Aceptar Web?</label>
-                    <a href="#">Has Olvidado tu contraseña?</a>
+                    <a href="#" class="forgot-link">Has Olvidado tu contraseña?</a>
                 </div>
             
                 <button type="submit" cLass="btn" onclick="Login()">Iniciar Sesion</button>
@@ -46,7 +49,7 @@
     
         <div class="form-box register">
             <h2>Registrarse</h2>
-            <form action="#">
+            <form action="#" >
             
                 <div class="input-box">
                     <span class="icon"><ion-icon name="person"></ion-icon></span>
@@ -75,9 +78,31 @@
             
                 </div>
             
-                <button type="submit" onclick="Register()" class="btn">Registrarse</button>
+                <button type="submit" onclick="enviarCorreoValidacion()" class="btn">Registrarse</button>
                 <div class="login-register">
                     <p>Tienes una cuenta? <a href="#" class="login-link"> Iniciar Sesión </a></p>
+                </div>
+            
+            </form>
+            
+        </div>
+
+
+        <div class="form-box forgotPass">
+            <h2>Correo</h2>
+            <form action="#" >
+            
+
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                    <input type="email" required id="EmailRe">
+                    <label>Correo Electronico</label>
+                </div>
+
+            
+                <button type="submit" onclick="enviarCorreoReset()" class="btn">Recuperar Contraseña</button>
+                <div class="login-register">
+                    <p>Recordaste la Contraseña? <a href="#" class="login-link2"> Iniciar Sesión </a></p>
                 </div>
             
             </form>
@@ -87,7 +112,7 @@
     </div>
         
 
-    <script type="module" src="DataControl.js"></script>
+    <script src="DataControl.js"></script>
     <scrip type="module" src="https://unpkg.com/ioniconse7.1.0/dist/ionicons/ionicons.esi"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.8/dist/ionicons/ionicons.js"></script>
     

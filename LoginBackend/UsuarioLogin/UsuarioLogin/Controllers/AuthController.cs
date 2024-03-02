@@ -15,6 +15,8 @@ using UsuarioLogin.DTO;
 using UsuarioLogin.Models;
 using MailKit.Net.Smtp;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
+using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace UsuarioLogin.Controllers
 {
@@ -24,24 +26,38 @@ namespace UsuarioLogin.Controllers
     {
         private readonly ManaUsersContext ManaUsersContext;
         private readonly IConfiguration _configuration;
+        private readonly IConfiguration secretKey;
 
         public AuthController(ManaUsersContext context, IConfiguration configuration)
         {
             this.ManaUsersContext = context;
             _configuration = configuration;
-
+            
         }
 
-        //public static Usuario usuario= new Usuario();
+
+        //Endpoints con las funcionalidades principales de la aplicacion
+        #region Endpoints
 
 
-        
+        //Metodo para Registrar Usuarios
+
+        #region Registrar
+
 
         [HttpPost("register")]
 
         public async Task<ActionResult<Usuario>> Register(UsuariosDTO usuariodto)
         {
-            CreatePasswordHash(usuariodto.Clave, out byte[] passwordHash, out byte[] passwordSalt);
+            CrearPasswordHash(usuariodto.Clave, out byte[] passwordHash, out byte[] passwordSalt);
+
+            var busqueda = await ManaUsersContext.Usuarios.Where(u => u.NombreUsuario == usuariodto.NombreUsuario || 
+            u.CorreoElectronico==usuariodto.CorreoElectronico).SingleOrDefaultAsync();
+
+            if(busqueda!=null)
+            {
+                return BadRequest("El Usuario o Correo ya ha sido registrado");
+            }
 
             var usuario = new Usuario()
             {
@@ -49,11 +65,8 @@ namespace UsuarioLogin.Controllers
                 CorreoElectronico = usuariodto.CorreoElectronico,
                 ClaveHash = passwordHash,
                 ClaveSalt = passwordSalt,
+
             };
-            
-                
-            
-            
 
 
             ManaUsersContext.Add(usuario);
@@ -61,68 +74,248 @@ namespace UsuarioLogin.Controllers
             return Ok(usuario);
         }
 
+        #endregion
+
+
+        //Metodo para Loguear Usuarios
+        #region Login
+
 
         [HttpPost("login")]
 
-        public async Task<ActionResult<string>>Login(UsuariosLogDTO usuariosDTO)
+        public async Task<ActionResult<string>> Login(UsuariosLogDTO usuariosDTO)
         {
-            
-            var user= await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
-                .Select(u=>u.NombreUsuario).SingleOrDefaultAsync();
 
-            var contraHash = await ManaUsersContext.Usuarios.Where(u=>u.CorreoElectronico==usuariosDTO.CorreoElectronico)
-                .Select(u=>u.ClaveHash).SingleOrDefaultAsync();
+            var UserLogin = await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
+                .SingleOrDefaultAsync();
+
+            var user = await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
+                .Select(u => u.NombreUsuario).SingleOrDefaultAsync();
+
+            var contraHash = await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
+                .Select(u => u.ClaveHash).SingleOrDefaultAsync();
 
             var contraSalt = await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
                 .Select(u => u.ClaveSalt).SingleOrDefaultAsync();
 
-            
+            var idUser = await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == usuariosDTO.CorreoElectronico)
+                .Select(u => u.IdUsuario).SingleOrDefaultAsync();
 
-            if (user==null)
+            if (UserLogin.tokenVerificacion != null)
+            {
+                return BadRequest($"El Usuario {user} ya esta logueado");
+            }
+
+            if (user == null)
             {
                 return BadRequest("Usuario Incorrecto");
             }
 
-            if(!VerifyPasswordHash(usuariosDTO.Clave, contraHash, contraSalt))
+            if (!VerificarPasswordHash(usuariosDTO.Clave, contraHash, contraSalt))
             {
                 return BadRequest("Contraseña incorrecta");
             }
 
-            string Token = CreateToken(user);
-            return Ok(Token);
-            
+
+            var token = CreateToken(user);
+
+            UserLogin.tokenVerificacion =token;
+
+            UserLogin.tokenDate=DateTime.Now;
+
+            await ManaUsersContext.SaveChangesAsync();
+
+            return StatusCode(StatusCodes.Status200OK,new { token = token, mensaje=$"El Usuario {UserLogin.NombreUsuario} ha Iniciado Sesion"}); 
+
+
+        }
+
+        #endregion
+
+        //Metodo para Cerrar Sesion
+
+        [HttpPost("loginOut")]
+        public async Task<IActionResult>LogOut(VerificacionDTO verificacion)
+        {
+            var user = await ManaUsersContext.Usuarios.FirstOrDefaultAsync(u => u.tokenVerificacion == verificacion.token);
+
+            if (user == null)
+            {
+                return BadRequest("Token Invalido");
+            }
+
+            user.tokenDate = null;
+            user.tokenVerificacion = null;
+
+            await ManaUsersContext.SaveChangesAsync();
+
+            return Ok($"Usuario {user.NombreUsuario} acaba de Cerrar Sesion");
+
         }
 
 
-        [HttpPost]
+        //Metodo para Enviar Email de Confirmacion
 
-        public IActionResult SendEmail(string body, string subject, string dirigido)
+        #region Enviar Emails
+
+        [HttpPost("EnviarEmails")]
+
+        public async Task<IActionResult> SendEmail(CorreoDTO correoDto)
         {
-            //var email = new MimeMessage();
-            //email.From.Add(MailboxAddress.Parse("cody30@ethereal.email"));
-            //email.To.Add(MailboxAddress.Parse("cody30@ethereal.email"));
-            //email.Subject = "Prueba de Email";
-            //email.Body = new TextPart(TextFormat.Html)
-            //{
-            //    Text = body
-            //};
 
-            //using var smtp = new SmtpClient();
-            //smtp.Connect("smtp.ethereal.email", 587, SecureSocketOptions.StartTls);
-            //smtp.Authenticate("cody30@ethereal.email", "jQGc4TcuSqUDcNr2pp");
-            //smtp.Send(email);
-            //smtp.Disconnect(true);
+            //Otra Forma de Enviar Correos
+            /*
+            
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse("eldeveloper62@gmail.com"));
+            email.To.Add(MailboxAddress.Parse("eldeveloper62@gmail.com"));
+            email.Subject = "Prueba de Email";
+            email.Body = new TextPart(TextFormat.Html)
+            {
+                Text = body
+            };
 
-            string fromMail = "eldeveloper62@gmail.com";
-            string fromPass = "zfqoggimvcvguzus";
+            using var smtp = new SmtpClient();
+            smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+            smtp.Authenticate("eldeveloper62@gmail.com", "zfqoggimvcvguzus");
+            smtp.Send(email);
+            smtp.Disconnect(true);
+
+            */
+
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+            var emailConfig = configuration.GetSection("EmailConfiguration");
+            string fromMail = emailConfig["CorreoUsuario"];
+            string fromPass = emailConfig["ContrasenaUsuario"];
+
+            var token = await ManaUsersContext.Usuarios.Where(u => u.CorreoElectronico == correoDto.ToEmail)
+                .Select(u => u.tokenResetClave).SingleOrDefaultAsync();
+
+            string body = @"<!DOCTYPE html>
+            <html lang=es>
+            <head>
+              <meta charset=""UTF-8"">
+              <meta name=""viewport"" content=""""width=device-width, initial-scale=1.0>
+              <title>Botón Verde Grande con Hover y Click</title>
+              <style>
+
+                .Vebutton {
+                  background-color:rgb(29, 4, 97);
+                  color: white;
+                  padding: 15px 20px;
+                  font-size: 18px;
+                  border: none;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  transition: background-color 0.3s; 
+                }
+
+                /* Efecto hover */
+                .Vebutton:hover {
+                  background-color: rgb(142, 103, 248); /* Cambia el color de fondo al pasar el mouse */
+                }
+
+                /* Efecto click (estado :active) */
+                .Vebutton:active {
+                  background-color: pink; /* Cambia el color de fondo al hacer clic */
+                }
+              </style>
+
+                
+            </head>
+            <body>
+
+
+            <h1>Confirmar su Correo Electronico para terminar el proceso de registro</h1>
+
+            <p>Si desea ser parte de nuestra comunidad, favor validar el correo con el siguiente boton:</p>
+            
+            <a href=""http://127.0.0.1:5500/verificacion.html?#""><button class=""Vebutton"" >Confirmar Correo Electronico</button></a>
+            
+
+
+            
+
+            <p>Este correo fue de parte de Manuel Sanchez</p>
+
+            <p>&copy; by Manuel Sanchez</p>
+
+            </body>
+            </html>";
+
+
+            string bodyPass = @"<!DOCTYPE html>
+            <html lang=es>
+            <head>
+              <meta charset=""UTF-8"">
+              <meta name=""viewport"" content=""""width=device-width, initial-scale=1.0>
+              <title>Botón Verde Grande con Hover y Click</title>
+              <style>
+
+                .Vebutton {
+                  background-color:rgb(29, 4, 97);
+                  color: white;
+                  padding: 15px 20px;
+                  font-size: 18px;
+                  border: none;
+                  border-radius: 5px;
+                  cursor: pointer;
+                  transition: background-color 0.3s; 
+                }
+
+                /* Efecto hover */
+                .Vebutton:hover {
+                  background-color: rgb(142, 103, 248); /* Cambia el color de fondo al pasar el mouse */
+                }
+
+                /* Efecto click (estado :active) */
+                .Vebutton:active {
+                  background-color: pink; /* Cambia el color de fondo al hacer clic */
+                }
+              </style>
+
+                
+            </head>
+            <body>
+
+
+            <h1>Seleccione la opcion de Cambiar contraseña para modificar sus credenciales</h1>
+
+            <p>Si desea ser parte de nuestra comunidad, favor validar el correo con el siguiente boton:</p>
+            
+            <a href=""http://127.0.0.1:5500/resetPass.html""><button class=""Vebutton"" >Cambiar Contraseña</button></a>
+            
+
+
+            
+
+            <p>Este correo fue de parte de Manuel Sanchez</p>
+
+            <p>&copy; by Manuel Sanchez</p>
+
+            </body>
+            </html>";
+
 
             MailMessage email = new MailMessage();
             email.From = new MailAddress(fromMail);
-            email.Subject = subject;
+            email.Subject = "Correo de Confirmacion";   //correoDto.Subject;
 
-            email.To.Add(new MailAddress(dirigido));
+            email.To.Add(new MailAddress(correoDto.ToEmail));
 
-            email.Body = body;
+            if (token != null)
+            {
+                email.Body = bodyPass;
+            }
+            else
+            {
+                email.Body = body;
+            }
+
 
             email.IsBodyHtml = true;
 
@@ -140,10 +333,117 @@ namespace UsuarioLogin.Controllers
 
         }
 
+        #endregion
 
 
 
+        //Metodo para la Verificacion de Usuario al Loguearse
 
+        [HttpPost("Verificacion")]
+
+        public async Task<IActionResult> Verificar(VerificacionDTO verificacion)
+        {
+
+
+            var user = await ManaUsersContext.Usuarios.FirstOrDefaultAsync(u => u.tokenVerificacion == verificacion.token);
+
+            if (user == null ||verificacion.token==null)
+            {
+                return BadRequest("Token Invalido");
+            }
+
+
+            
+
+            return Ok("Usuario Verificado");
+
+        }
+
+        //Metodo para Cuando Olvidas Contraseña
+
+        #region Crear token de Contraseñas
+
+
+
+        [HttpPost("OlvidoContraseña")]
+
+        public async Task<IActionResult> OlvidarPass(CorreoDTO correo)
+        {
+            var user = await ManaUsersContext.Usuarios.FirstOrDefaultAsync(u => u.CorreoElectronico == correo.ToEmail);
+
+            if (user == null)
+            {
+                return BadRequest("Email no registrado");
+
+
+            }
+
+            user.tokenResetClave = CrearRandomToken();
+            user.tokenExpResetClave = DateTime.Now.AddMinutes(20);
+
+            await ManaUsersContext.SaveChangesAsync();
+
+
+            return Ok(user.tokenResetClave);
+
+
+        }
+
+        #endregion
+
+
+
+        //Metodo para Resetear Contraseña
+
+        #region Resetear Contraseña
+
+        [HttpPost("ResetPass")]
+
+        public async Task<IActionResult> ResetPassWord(UsuarioResetDTO usuarioReset)
+        {
+            var user = await ManaUsersContext.Usuarios.FirstOrDefaultAsync(u => u.tokenResetClave == usuarioReset.token);
+
+            if (user == null || user.tokenExpResetClave < DateTime.Now)
+            {
+                return BadRequest("Token Invalido");
+            }
+
+            if (usuarioReset.clave != usuarioReset.claveConfirmacion)
+            {
+                return BadRequest("Contraseña no coinciden Invalido");
+            }
+
+            if (usuarioReset.clave.Length < 6)
+            {
+                return BadRequest("La contraseña debe de tener más de 6 digitos");
+            }
+
+    
+            CrearPasswordHash(usuarioReset.clave, out byte[] passwordHash, out byte[] passwordSalt);
+
+            user.ClaveHash = passwordHash;
+            user.ClaveSalt = passwordSalt;
+
+            user.tokenResetClave = null;
+            user.tokenExpResetClave = null;
+
+            await ManaUsersContext.SaveChangesAsync();
+
+            return Ok("Contraseña Guardada");
+        }
+
+        #endregion
+
+        #endregion
+
+
+        //Funciones para crear un token por usuario -- Usada para cuando un usuario se loguea
+
+        #region Metodos de Creacion de Tokens
+
+        //Metodo 1 utilizando JwtSecurityToken
+
+        #region Metodo 1 JwtSecurityToken
         private string CreateToken(string usuario)
         {
             List<Claim> claims = new List<Claim>
@@ -156,18 +456,84 @@ namespace UsuarioLogin.Controllers
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
+            //var randomComponent = Guid.NewGuid().ToString();
+
             var token = new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.Now.AddSeconds(60),
                 signingCredentials: creds
                 );
 
-            var jwt= new JwtSecurityTokenHandler().WriteToken(token);
+            //token.Header.Add("random_component", randomComponent);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
         }
 
-        private void  CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        #endregion
+
+
+        //Metodo 2 utilizando SecuritytokenDescriptor
+
+        #region Metodo 2 SecuritytokenDescriptor
+        private string CrearToken(string usuario)
+        {
+
+            IConfigurationRoot secretKeyP = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+            var secretKey= secretKeyP.GetSection("settings").GetSection("secretKey").ToString();
+
+
+            var keyBytes = Encoding.ASCII.GetBytes(secretKey);
+            var claims = new ClaimsIdentity();
+            claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, usuario));
+
+            var tokenDescripcion = new SecurityTokenDescriptor
+            {
+                Subject = claims,
+                Expires = DateTime.UtcNow.AddMinutes(5),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenConfig = tokenHandler.CreateToken(tokenDescripcion);
+
+            var tokenCreado = tokenHandler.WriteToken(tokenConfig);
+
+            return tokenCreado;
+
+            
+        }
+
+        #endregion
+
+
+        //Funcion que crea un token random para el tema del reseteo de contraseña
+
+        #region Metodo 3 TokenRandom
+        private string CrearRandomToken()
+        {
+            return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
+        }
+
+        #endregion
+
+        #endregion
+
+
+
+        //Funcion utilizada para cifrar la contraseña que el usuario quiere tener
+
+        #region Metodos para Cifrar y Verificar Contraseñas
+
+
+        //Metodo utilizado para cifrar contraseña creando un Hash
+        #region  Metodo para Cifrar Contraseñas 
+        private void  CrearPasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using(var hmac= new HMACSHA512())
             {
@@ -176,8 +542,14 @@ namespace UsuarioLogin.Controllers
             }
 
         }
+        #endregion
 
-        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+
+
+        //Funcion usada para comparar la contraseña al loguearse con la registrada, cifra la del logue y compara cifrados
+
+        #region Metodo para Verificar Contraseña
+        private bool VerificarPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
             using (var hmac = new HMACSHA512(passwordSalt))
             {
@@ -188,5 +560,14 @@ namespace UsuarioLogin.Controllers
                 return computedHash.SequenceEqual(passwordHash);
             }
         }
+
+
+        #endregion
+
+
+        #endregion
+
+
+        
     }
 }

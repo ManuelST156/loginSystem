@@ -106,10 +106,34 @@ header{
 
 }
 
+.reset{
+    position:relative;
+    width: 400px;
+    height: 440px;
+    background:transparent ;
+    border: 2px solid rgba(225, 225, 225, .5);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+
+
+}
+
 .wrapper.active-popup{
     transform: scale(1);
 
 }
+
+.wrapper.activeD{
+    height: 420px;
+
+}
+
+
 
 .wrapper.active{
     height: 520px;
@@ -124,6 +148,12 @@ header{
 .wrapper .form-box.login{
     transition: transfrom .18s ease;
     transform: translateX(0);
+}
+
+.wrapper.activeD .form-box.login{
+    transition: none;
+    transform: translateX(-400px);
+
 }
 
 .wrapper.active .form-box.login{
@@ -144,11 +174,26 @@ header{
 
 }
 
+.wrapper .form-box.forgotPass{
+    position: absolute;
+    transition: none;
+    transform: translateX(400px);
+}
+
+.wrapper.activeD .form-box.forgotPass{
+    transition: transfrom .18s ease;
+    transform: translateX(0);
+
+}
+
+
+
+
 .form-box h2{
     font-size: 2em;
     color: rgb(29, 4, 97);
     text-align: center;
-
+    
 }
 
 .input-box{
@@ -254,4 +299,11 @@ header{
 
 .login-register p a:hover{
     text-decoration: underline;
+}
+
+.form-box p{
+    font-size: 0,2em;
+    color: rgb(0, 0, 0);
+    text-align: center;
+    
 }
