@@ -5,21 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
-
     <header>
         <h2 cLass="logo">El Inicio</h2>
         <nav class="navigation">
             <a href="index.html">Inicio</a>
-            <a href="VerUsuarios.html">Ver Usuarios</a>
-            <a href="SobrePagina.html">Sobre Pagina</a>
-            <a href="#" id="reloj">reloj</a>
-            <button class="btnlogin-popup">Iniciar Sesion</button>
+            <a href="#" onclick="IrPaginaVerificacion('VerUsuarios.html')">Ver Usuarios</a>
+            <a href="#" onclick="IrPaginaVerificacion('SobrePagina.html')">Sobre Pagina</a>
+            <a href="" id="reloj">reloj</a>
+            <button class="btnlogin-popup" id="IS">Iniciar Sesion</button>
+            <button class="btnlogin-popup" id="CS" onclick="LogOut()" hidden>Cerra Sesion</button>
         </nav>
     </header>
 
+    <div id="miDiv" style="display: none;">
+        <h1>Ver Usuarios</h1>
+    </div>
 
-    <h1>Ver Usuarios</h1>
+    <script src="CargarPaginas.js"></script>
+    <script src="DataControl.js"></script>
+
+    
 </body>
 </html>
+

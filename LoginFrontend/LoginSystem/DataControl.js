@@ -1,12 +1,25 @@
+let reloj=document.getElementById('reloj');
+
+    
+
+//Funcion Interval
+setInterval(() => {
+    let Hora= new Date();
+    reloj.innerHTML=Hora.toLocaleTimeString();//`${Fecha.getHours()}:${Fecha.getMinutes()}:${Fecha.getSeconds()}`;
+    console.log(reloj);
+
+
+}, 1000);
+
+
 //import nodemailer from 'nodemailer';
 
 //import {validarCorreo} from './services/mail.service.js';
 
 let EmailInput=document.getElementById("Email");
 let passwordInput=document.getElementById("password");
-
-const cerrarBoton= document.getElementById('CS');
-const iniciarBoton= document.getElementById('IS');
+const cerrarBotonCS= document.getElementById('CS');
+const iniciarBotonIS= document.getElementById('IS');
 
 const wrapper= document.querySelector('.wrapper');
 const loginlink= document.querySelector('.login-link');
@@ -15,7 +28,8 @@ const registerlink= document.querySelector('.register-link');
 const forgotlink=document.querySelector('.forgot-link');
 const btnPopup= document.querySelector('.btnlogin-popup');
 
-const ApiURL='https://localhost:7224/api/Auth/'; 
+
+const URLAPI='https://localhost:7224/api/Auth/'; 
 
 //https://localhost:7224/api/Auth/login
 
@@ -44,7 +58,7 @@ loginlink2.addEventListener('click',()=>{
 forgotlink.addEventListener('click',()=>{
 
     wrapper.classList.add('activeD');
-})
+});
 
 btnPopup.addEventListener('click',()=>{
     wrapper.classList.add('active-popup');
@@ -66,7 +80,7 @@ async function Login(){
     };
 
 
-   var url= ApiURL+'login'; 
+   var url= URLAPI+'login'; 
 
    try 
     {
@@ -85,8 +99,8 @@ async function Login(){
 
         localStorage.setItem('tokenAuth',responseData.token);
 
-        cerrarBoton.hidden=false;
-        iniciarBoton.hidden=true;
+        cerrarBotonCS.hidden=false;
+        iniciarBotonIS.hidden=true;
 
         console.log(localStorage.getItem('tokenAuth'));
         wrapper.classList.remove('active-popup');
@@ -102,21 +116,7 @@ async function Login(){
     }
 
     
-    /* if(response.ok)
-    {
-        console.log(horas);
-        if(horas<18&&horas>12)
-        {
-            alert("Buenas Tardes! Ha accedido a su sistema");
-        }
-        else if(horas>6 && horas<12) {
-            alert("Buenos Dias! Ha accedido a su sistema"); 
-        }
-        else
-        {
-            alert("Buenas Noches! Ha accedido a su sistema: "); 
-        }
-    } */
+
     
 
     
@@ -125,7 +125,7 @@ async function Login(){
 async function LogOut()
 {
 
-    var url= ApiURL+'loginOut'; 
+    var url= URLAPI+'loginOut'; 
     var Data={};
     Data.token=localStorage.getItem('tokenAuth');
 
@@ -144,8 +144,8 @@ async function LogOut()
 
     console.log('Respuesta del API:', responseData);
 
-    cerrarBoton.hidden=true;
-    iniciarBoton.hidden=false;
+    cerrarBotonCS.hidden=true;
+    iniciarBotonIS.hidden=false;
     localStorage.removeItem('tokenAuth');
 
 
@@ -158,23 +158,6 @@ async function LogOut()
 
 
 }
-
-
-
-
-let reloj=document.getElementById("reloj");
-    let comida="hola";
-    console.log(comida);
-    console.log(reloj);
-
-    //Funcion Interval
-    setInterval(() => {
-    let Hora= new Date();
-    reloj.innerHTML=Hora.toLocaleTimeString();//`${Fecha.getHours()}:${Fecha.getMinutes()}:${Fecha.getSeconds()}`;
-    
-
-
-}, 1000);
 
 
 
@@ -195,7 +178,7 @@ async function enviarCorreoValidacion()
 
     Data.toEmail=Email;
 
-    var url= ApiURL+'EnviarEmails'; 
+    var url= URLAPI+'EnviarEmails'; 
    try 
    {
    const response= await fetch(url, {
@@ -226,7 +209,7 @@ async function enviarCorreoReset(){
     data.toEmail=Email;
     console.log("viendo");
 
-    var url= ApiURL+'OlvidoContraseña'; 
+    var url= URLAPI+'OlvidoContraseña'; 
     try 
     {
     const response= await fetch(url, {
@@ -249,7 +232,7 @@ async function enviarCorreoReset(){
 
 
 
-    var url= ApiURL+'EnviarEmails'; 
+    var url= URLAPI+'EnviarEmails'; 
     try 
     {
     const response= await fetch(url, {
@@ -269,11 +252,165 @@ async function enviarCorreoReset(){
 
 }
 
-
-
-async function AutenticacionUsuario()
+/* async function VerificarUsuario()
 {
+    var data={};
+
+    data.token=localStorage.getItem('tokenAuth');
+
+
+    var url= ApiURL+'Verificacion'; 
+    try 
+    {
+        const response= await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+
+
+            
+            return false;
+  
+        }
+
+
+        
+        return true;
+
+     } 
+     catch (error) 
+     {
+         console.error('Error en la solicitud:', error); 
+         
+     }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+
+    var PaginaActual=window.location.href;
+
+    if(await VerificarUsuario())
+    {
+        
+        cerrarBoton.hidden=false;
+        iniciarBoton.hidden=true;
+        document.getElementById('miDiv').style.display = 'block';
+    }
+    else
+    {
+        iniciarBoton.hidden=false;
+        cerrarBoton.hidden=true;
+        console.log(PaginaActual);
+
+        if(PaginaActual!='http://127.0.0.1:5500/index.html?#')
+        {
+            localStorage.setItem('dato','log');
+        }
+        
+        window.location.href ='index.html?#';
+
+        
+    }
+
+    var dato=localStorage.getItem('dato');
+
+    if(dato=='log')
+    {
+        wrapper.classList.add('active-popup');
+        localStorage.removeItem('dato');
+    }
+    
+});  */
+
+async function VerificarUsuario()
+{
+    var data={};
+
+    data.token=localStorage.getItem('tokenAuth');
+
+
+    var url= URLAPI+'Verificacion'; 
+    try 
+    {
+        const response= await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+
+
+            
+            return false;
+  
+        }
+        
+        return true;
+
+     } 
+     catch (error) 
+     {
+         console.error('Error en la solicitud:', error); 
+         
+     }
+}
+
+
+
+async function IrPaginaVerificacion(pagina)
+{
+    console.log("llega?");
+    if(await VerificarUsuario())
+    {
+        
+        window.location.href =pagina;
+    }
+    else
+    {
+        window.location.href ='index.html?#';
+        
+        wrapper.classList.add('active-popup');
+        console.log(pagina);
+    }
 
 }
+
+document.addEventListener('DOMContentLoaded', async function() {
+
+   
+
+    if(await VerificarUsuario())
+    {
+        
+        cerrarBotonCS.hidden=false;
+        iniciarBotonIS.hidden=true;
+    }
+    else
+    {
+        iniciarBotonIS.hidden=false;
+        cerrarBotonCS.hidden=true;
+
+    }
+
+    var dato=localStorage.getItem('dato');
+    
+    if(dato=='log')
+    {
+        wrapper.classList.add('active-popup');
+        localStorage.removeItem('dato');
+    }
+
+    
+    
+}); 
+
 
 
