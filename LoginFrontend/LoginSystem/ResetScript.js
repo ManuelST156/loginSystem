@@ -1,7 +1,7 @@
 const ApiURL='https://localhost:7224/api/Auth/'; 
 
 
-
+//Funcion para resetear contraseña
 async function resetearPass()
 {
     let pass=document.getElementById('Pass').value;
@@ -52,12 +52,10 @@ async function resetearPass()
             localStorage.removeItem('token');
             console.log("eliminado");
             alert(dataRecibida);
+            window.location.href ='index.html?#';
             
            
         }
-
-
-
         
 
      } 
@@ -70,5 +68,24 @@ async function resetearPass()
      
     
 }
+
+
+//Funcion para cuando cargue la pagina
+document.addEventListener('DOMContentLoaded', async function() {
+
+   var token= localStorage.getItem('token');
+   console.log(token);
+
+    if(token==null)
+    {
+        window.location.href ='NotAuth.html';
+    }
+    else
+    {
+        document.getElementById('re').style.display = 'block';
+    }
+        
+    
+}); 
 
 

@@ -1,0 +1,37 @@
+#usuarios {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 24px;
+
+}
+
+#usuarios td, #usuarios th {
+    border: 1px solid blueviolet;
+    padding: 15px;
+}
+
+#usuarios tr:nth-child(even){
+    background-color: #ffffff;
+}
+
+#usuarios tr:nth-child(odd){
+    background-color: #e4bffa;
+}
+
+#usuarios tr:hover {
+    background-color: #ddd;
+}
+
+#usuarios th{
+
+    padding-top: 16px;
+    padding-bottom: 16px;
+    text-align: left;
+    background-color: rgb(29, 4, 97);
+    color: white;
+}
+
+
+
+

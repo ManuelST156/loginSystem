@@ -8,6 +8,10 @@
 
 }
 
+.navigation a:hover{
+    color: cyan;
+}
+
 body{
     display: flex;
     justify-content: center;
@@ -278,7 +282,18 @@ header{
     font-size: 1em;
     color: white;
     font-weight: 500;
+    margin: 10px 0;
+}
 
+
+.btn:hover{
+
+    background: rgb(151, 113, 255);
+
+}
+
+.btn:active{
+    background: rgb(132, 44, 156);
 }
 
 .login-register{
@@ -307,3 +322,37 @@ header{
     text-align: center;
     
 }
+
+.iconosBoton{
+
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+}
+
+
+i {
+    border: none;
+    background: none;   
+    font-size: 30px;
+    color: rgb(29, 4, 97);
+    transition: color 0.3s;
+    
+}
+
+i:hover {
+    color: blueviolet;
+}
+
+i:active{
+    color: rosybrown;
+}
+
+
+.reset .form-box {
+    width: 100%;
+    padding: 40px;
+}
+
+

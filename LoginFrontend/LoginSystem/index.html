@@ -11,7 +11,7 @@
     <header>
         <h2 cLass="logo">El Inicio</h2>
         <nav class="navigation">
-            <a href="index.html?#">Inicio</a>
+            <a id="prueb" href="index.html?#">Inicio</a>
             <a href="#" onclick="IrPaginaVerificacion('VerUsuarios.html')">Ver Usuarios</a>
             <a href="#" onclick="IrPaginaVerificacion('SobrePagina.html')">Sobre Pagina</a>
             
@@ -24,9 +24,13 @@
 
 
     <div class="wrapper">
+    
+        
         <div cLass="form-box login">
+            <a class="iconosBoton" id="close" ><i class="fas fa-xmark"></i></a>
             <h2>Iniciar Sesion</h2>
             <form action="#">
+                
                 <div class="input-box">
                     <span class="icon"><ion-icon name="mail"></ion-icon></span>
                     <input type="email" required id="Email">
@@ -38,8 +42,7 @@
                     <label>Contraseña</1abel>
                 </div>
                 <div class="forgotPass">
-                    <label><input type="checkbox">Aceptar Web?</label>
-                    <a href="#" class="forgot-link">Has Olvidado tu contraseña?</a>
+                    <a href="#" class="forgot-link">Has Olvidado tu contraseña?</a> <br>
                 </div>
             
                 <button type="submit" cLass="btn" onclick="Login()">Iniciar Sesion</button>
@@ -50,7 +53,9 @@
         </div>
     
         <div class="form-box register">
+            <a class="iconosBoton" id="closeR" ><i class="fas fa-xmark"></i></a>
             <h2>Registrarse</h2>
+            
             <form action="#" >
             
                 <div class="input-box">
@@ -73,12 +78,6 @@
                     <label>Contraseña</label>
                 </div>
             
-            
-                <div class="ingat">
-                    <label><input type="checkbox">
-                    Aceptar Terminos de Web?</label>
-            
-                </div>
             
                 <button type="submit" onclick="enviarCorreoValidacion()" class="btn">Registrarse</button>
                 <div class="login-register">
@@ -117,7 +116,7 @@
     <script src="DataControl.js"></script>
 
     <scrip type="module" src="https://unpkg.com/ioniconse7.1.0/dist/ionicons/ionicons.esi"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.8/dist/ionicons/ionicons.js"></script>
+    <script src="https://kit.fontawesome.com/ba4de68a0a.js" crossorigin="anonymous"></script>
     
 </body>
 </html>

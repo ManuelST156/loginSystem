@@ -1,20 +1,20 @@
+//Obtenemos elemento para presetar el reloj
+
 let reloj=document.getElementById('reloj');
 
     
 
-//Funcion Interval
+//Funcion Interval para cargar el reloj actual
 setInterval(() => {
     let Hora= new Date();
     reloj.innerHTML=Hora.toLocaleTimeString();//`${Fecha.getHours()}:${Fecha.getMinutes()}:${Fecha.getSeconds()}`;
-    console.log(reloj);
+
 
 
 }, 1000);
 
 
-//import nodemailer from 'nodemailer';
-
-//import {validarCorreo} from './services/mail.service.js';
+//Variables que contienen elementos del html
 
 let EmailInput=document.getElementById("Email");
 let passwordInput=document.getElementById("password");
@@ -28,15 +28,18 @@ const registerlink= document.querySelector('.register-link');
 const forgotlink=document.querySelector('.forgot-link');
 const btnPopup= document.querySelector('.btnlogin-popup');
 
+var close=document.getElementById("close");
+var closeR=document.getElementById("closeR");
 
+//URl de la api
 const URLAPI='https://localhost:7224/api/Auth/'; 
 
-//https://localhost:7224/api/Auth/login
+
 
 let responseData='';
 
 
-
+//Event Listener del form para login/register/PasswordReset
 registerlink.addEventListener('click',()=>{
     wrapper.classList.add('active');
     console.log("Se agrego la cosa a wrapper");
@@ -68,7 +71,7 @@ btnPopup.addEventListener('click',()=>{
 
 
 
-
+//Funcion para logearse en la app
 async function Login(){
     Email=EmailInput.value;
 
@@ -92,21 +95,42 @@ async function Login(){
             }
         });
 
-        console.log(Data);
-        responseData = await response.json();
+        responseData= await response.json();
 
-        console.log('Respuesta del API:', responseData.mensaje);
+        if(response.ok)
+        {
+            
+            localStorage.setItem('tokenAuth',responseData.token);
 
-        localStorage.setItem('tokenAuth',responseData.token);
+            cerrarBotonCS.hidden=false;
+            iniciarBotonIS.hidden=true;
 
-        cerrarBotonCS.hidden=false;
-        iniciarBotonIS.hidden=true;
+            console.log(localStorage.getItem('tokenAuth'));
+            wrapper.classList.remove('active-popup');
 
-        console.log(localStorage.getItem('tokenAuth'));
-        wrapper.classList.remove('active-popup');
+            EmailInput.value="";
+            passwordInput.value="";
+            
+        }
+        else{
 
-        EmailInput.value="";
-        passwordInput.value="";
+            
+            if(responseData.errors!=undefined)
+            {
+
+                alert(responseData.errors.Clave);
+                console.log(responseData.errors.Clave);
+            }
+            else
+            {
+                alert(responseData.mensajeError);
+                console.log(responseData.mensajeError);
+            }
+            
+           
+            
+                
+        }
 
     } 
     catch (error) 
@@ -122,9 +146,12 @@ async function Login(){
     
 }
 
+
+//Funcion para Cerrar Sesion en la app
 async function LogOut()
 {
-
+    
+    
     var url= URLAPI+'loginOut'; 
     var Data={};
     Data.token=localStorage.getItem('tokenAuth');
@@ -147,7 +174,7 @@ async function LogOut()
     cerrarBotonCS.hidden=true;
     iniciarBotonIS.hidden=false;
     localStorage.removeItem('tokenAuth');
-
+    window.location.href ='index.html?#';
 
     } 
     catch (error) 
@@ -160,8 +187,10 @@ async function LogOut()
 }
 
 
+//Permite que se pueda usar la funcion en otros docs js
+window.LogOut = LogOut;
 
-//Enviar Correo de Validacion
+//Funcion para Enviar Correo de Validacion
 async function enviarCorreoValidacion()
 {
     let Email=document.getElementById("EmailR").value;
@@ -169,6 +198,13 @@ async function enviarCorreoValidacion()
     let password=document.getElementById("PassR").value;
 
     let userName=document.getElementById("UserR").value;
+
+    if(password.length<6)
+    {
+        return alert("La contraseña debe de ser de  6 o más digitos");
+    }
+
+
 
     localStorage.setItem('Email',Email);
     localStorage.setItem('PassR',password);
@@ -199,7 +235,7 @@ async function enviarCorreoValidacion()
 }
 
 
-
+//Funcion para Enviar correo para el reseteo de contraseña
 async function enviarCorreoReset(){
 
     let Email=document.getElementById("EmailRe").value;
@@ -221,7 +257,16 @@ async function enviarCorreoReset(){
         });
 
         var dataEnviada= await response.text();
-        localStorage.setItem('token',dataEnviada);
+        if(response.ok)
+        {
+            
+            localStorage.setItem('token',dataEnviada);
+        }
+        else
+        {
+            alert(dataEnviada);
+        }
+        
      } 
      catch (error) 
      {
@@ -252,81 +297,8 @@ async function enviarCorreoReset(){
 
 }
 
-/* async function VerificarUsuario()
-{
-    var data={};
 
-    data.token=localStorage.getItem('tokenAuth');
-
-
-    var url= ApiURL+'Verificacion'; 
-    try 
-    {
-        const response= await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(data),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-
-
-            
-            return false;
-  
-        }
-
-
-        
-        return true;
-
-     } 
-     catch (error) 
-     {
-         console.error('Error en la solicitud:', error); 
-         
-     }
-}
-
-document.addEventListener('DOMContentLoaded', async function() {
-
-    var PaginaActual=window.location.href;
-
-    if(await VerificarUsuario())
-    {
-        
-        cerrarBoton.hidden=false;
-        iniciarBoton.hidden=true;
-        document.getElementById('miDiv').style.display = 'block';
-    }
-    else
-    {
-        iniciarBoton.hidden=false;
-        cerrarBoton.hidden=true;
-        console.log(PaginaActual);
-
-        if(PaginaActual!='http://127.0.0.1:5500/index.html?#')
-        {
-            localStorage.setItem('dato','log');
-        }
-        
-        window.location.href ='index.html?#';
-
-        
-    }
-
-    var dato=localStorage.getItem('dato');
-
-    if(dato=='log')
-    {
-        wrapper.classList.add('active-popup');
-        localStorage.removeItem('dato');
-    }
-    
-});  */
-
+//Funcion para verificar el usuario este logeado
 async function VerificarUsuario()
 {
     var data={};
@@ -364,7 +336,7 @@ async function VerificarUsuario()
 }
 
 
-
+//Funcion para ir a la pagina una vez este verificada
 async function IrPaginaVerificacion(pagina)
 {
     console.log("llega?");
@@ -383,6 +355,8 @@ async function IrPaginaVerificacion(pagina)
 
 }
 
+
+//Funcion que se ejecuta cuando carga una pagina
 document.addEventListener('DOMContentLoaded', async function() {
 
    
@@ -412,5 +386,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     
 }); 
 
+
+
+
+//Funcion para desactivar el cuadro del form al logearse/registrarse
+close.addEventListener("click", function() {
+    
+    wrapper.classList.remove('active-popup');
+    EmailInput.value="";
+    passwordInput.value="";
+});
+
+closeR.addEventListener("click", function() {
+    
+    
+    wrapper.classList.remove('active');
+    wrapper.classList.remove('active-popup');
+    EmailInput.value="";
+    passwordInput.value="";
+
+    
+});
 
 

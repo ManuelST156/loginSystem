@@ -17,6 +17,7 @@ using MailKit.Net.Smtp;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace UsuarioLogin.Controllers
 {
@@ -36,11 +37,11 @@ namespace UsuarioLogin.Controllers
         }
 
 
-        //Endpoints con las funcionalidades principales de la aplicacion
+        //1-) Endpoints con las funcionalidades principales de la aplicacion
         #region Endpoints
 
 
-        //Metodo para Registrar Usuarios
+        //1.1- Metodo para Registrar Usuarios
 
         #region Registrar
 
@@ -77,7 +78,7 @@ namespace UsuarioLogin.Controllers
         #endregion
 
 
-        //Metodo para Loguear Usuarios
+        //1.2- Metodo para Loguear Usuarios
         #region Login
 
 
@@ -113,7 +114,7 @@ namespace UsuarioLogin.Controllers
 
             if (!VerificarPasswordHash(usuariosDTO.Clave, contraHash, contraSalt))
             {
-                return BadRequest("Contraseña incorrecta");
+                return StatusCode(StatusCodes.Status400BadRequest, new {mensajeError= "Contraseña Incorrecta" });
             }
 
 
@@ -132,7 +133,11 @@ namespace UsuarioLogin.Controllers
 
         #endregion
 
-        //Metodo para Cerrar Sesion
+
+
+        //1.3- Metodo para Cerrar Sesion
+
+        #region LogOut
 
         [HttpPost("loginOut")]
         public async Task<IActionResult>LogOut(VerificacionDTO verificacion)
@@ -153,8 +158,10 @@ namespace UsuarioLogin.Controllers
 
         }
 
+        #endregion
 
-        //Metodo para Enviar Email de Confirmacion
+
+        //1.4- Metodo para Enviar Email de Confirmacion
 
         #region Enviar Emails
 
@@ -287,7 +294,7 @@ namespace UsuarioLogin.Controllers
 
             <p>Si desea ser parte de nuestra comunidad, favor validar el correo con el siguiente boton:</p>
             
-            <a href=""http://127.0.0.1:5500/resetPass.html""><button class=""Vebutton"" >Cambiar Contraseña</button></a>
+            <a href=""http://127.0.0.1:5500/resetPass.html?#""><button class=""Vebutton"" >Cambiar Contraseña</button></a>
             
 
 
@@ -337,7 +344,8 @@ namespace UsuarioLogin.Controllers
 
 
 
-        //Metodo para la Verificacion de Usuario al Loguearse
+        //1.5- Metodo para la Verificacion de Usuario al Loguearse
+        #region Verificacion de Usuario
 
         [HttpPost("Verificacion")]
 
@@ -358,8 +366,10 @@ namespace UsuarioLogin.Controllers
             return Ok("Usuario Verificado");
 
         }
+        #endregion
 
-        //Metodo para Cuando Olvidas Contraseña
+
+        //1.6- Metodo para Cuando Olvidas Contraseña
 
         #region Crear token de Contraseñas
 
@@ -393,7 +403,7 @@ namespace UsuarioLogin.Controllers
 
 
 
-        //Metodo para Resetear Contraseña
+        //1.7 -Metodo para Resetear Contraseña
 
         #region Resetear Contraseña
 
@@ -434,14 +444,115 @@ namespace UsuarioLogin.Controllers
 
         #endregion
 
+
+        //1.8- Metodo para verificar tiempo de tokens
+
+        #region Token Date Verificacion
+
+        [HttpPost("CompDate")]
+        public async Task<ActionResult>CompDate(VerificacionDTO verificacion)
+        {
+            var user= await ManaUsersContext.Usuarios.FirstOrDefaultAsync(u => u.tokenVerificacion == verificacion.token);
+
+            if (user == null || verificacion.token == null)
+            {
+                return BadRequest("Token Invalido");
+            }
+
+            var time = DescifrarDate(verificacion.token);
+
+            
+            if (time < DateTime.Now)
+            {
+                Console.WriteLine(DateTime.Now);
+                Console.WriteLine(time);
+                return BadRequest(false);
+                
+            }
+
+            Console.WriteLine(DateTime.Now);
+            Console.WriteLine(time);
+            return Ok(true);
+            
+        }
+
+
+
+
+
+
         #endregion
 
 
-        //Funciones para crear un token por usuario -- Usada para cuando un usuario se loguea
+        //1.9- Token de Reinicio de Token
+
+        #region Reinicio Token
+
+        [HttpPost("ReiniciarToken")]
+        public async Task<ActionResult> ReinicioToken(VerificacionDTO verificacion)
+        {
+
+            var user = await ManaUsersContext.Usuarios.FirstOrDefaultAsync(u => u.tokenVerificacion == verificacion.token);
+
+            if (user == null || verificacion.token == null)
+            {
+                return BadRequest("Token Invalido");
+            }
+
+            var token = CreateToken(user.NombreUsuario);
+
+            user.tokenVerificacion = token;
+
+            user.tokenDate = DateTime.Now;
+
+            
+
+            await ManaUsersContext.SaveChangesAsync();
+
+            return Ok(user.tokenVerificacion);
+
+
+        }
+
+
+        #endregion
+
+
+        //1.10- Metodo para generar un listado de todos los usuarios conectados
+
+        [HttpGet("UsuariosConectados")]
+        public async Task<ActionResult<IEnumerable<string>>> UsuariosConectados()
+        {
+            var busqueda = await ManaUsersContext.Usuarios.ToListAsync();
+
+            List<string> listaUsuarios = new List<string>();
+
+            foreach (var user in busqueda)
+            {
+                if(user.tokenVerificacion==null)
+                {
+                    listaUsuarios.Add(user.NombreUsuario + " Desconectado");
+                }
+                else
+                {
+                    listaUsuarios.Add(user.NombreUsuario + " Conectado");
+                }
+            }
+            return listaUsuarios;
+        }
+
+
+        #endregion
+
+
+        
+
+
+        //2-) Funciones para crear un token por usuario -- Usada para cuando un usuario se loguea
 
         #region Metodos de Creacion de Tokens
 
-        //Metodo 1 utilizando JwtSecurityToken
+        //2.1- Metodo 1 utilizando JwtSecurityToken
 
         #region Metodo 1 JwtSecurityToken
         private string CreateToken(string usuario)
@@ -460,7 +571,7 @@ namespace UsuarioLogin.Controllers
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddSeconds(60),
+                expires: DateTime.Now.AddMinutes(5),
                 signingCredentials: creds
                 );
 
@@ -474,7 +585,7 @@ namespace UsuarioLogin.Controllers
         #endregion
 
 
-        //Metodo 2 utilizando SecuritytokenDescriptor
+        //2.2- Metodo 2 utilizando SecuritytokenDescriptor
 
         #region Metodo 2 SecuritytokenDescriptor
         private string CrearToken(string usuario)
@@ -512,7 +623,7 @@ namespace UsuarioLogin.Controllers
         #endregion
 
 
-        //Funcion que crea un token random para el tema del reseteo de contraseña
+        //2.3- Funcion que crea un token random para el tema del reseteo de contraseña
 
         #region Metodo 3 TokenRandom
         private string CrearRandomToken()
@@ -522,16 +633,48 @@ namespace UsuarioLogin.Controllers
 
         #endregion
 
+
+        //2.4- Funcion para obtener la fecha de expiracion del token generado
+
+        #region Metodo 4 Descifrar Token Exp Date
+
+
+        private DateTime DescifrarDate(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+
+            //DateTime expiracion = securityToken.ValidTo;
+
+
+            //return expiracion;
+
+            if (securityToken == null)
+            {
+                // Token inválido
+                throw new ArgumentException("Invalid token");
+            }
+
+            var expValor = securityToken.Payload["exp"];
+            long expUnixTimeSeconds = (long)expValor;
+
+            DateTime localTime = DateTimeOffset.FromUnixTimeSeconds(expUnixTimeSeconds).LocalDateTime;
+
+            return localTime;
+        }
+
+        #endregion
+
         #endregion
 
 
 
-        //Funcion utilizada para cifrar la contraseña que el usuario quiere tener
+        //3-) Funcion utilizada para cifrar la contraseña que el usuario quiere tener
 
         #region Metodos para Cifrar y Verificar Contraseñas
 
 
-        //Metodo utilizado para cifrar contraseña creando un Hash
+        //3.1- Metodo utilizado para cifrar contraseña creando un Hash
         #region  Metodo para Cifrar Contraseñas 
         private void  CrearPasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
@@ -546,7 +689,7 @@ namespace UsuarioLogin.Controllers
 
 
 
-        //Funcion usada para comparar la contraseña al loguearse con la registrada, cifra la del logue y compara cifrados
+        //3.2- Funcion usada para comparar la contraseña al loguearse con la registrada, cifra la del logue y compara cifrados
 
         #region Metodo para Verificar Contraseña
         private bool VerificarPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)

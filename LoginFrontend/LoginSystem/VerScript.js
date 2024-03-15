@@ -1,6 +1,7 @@
 const ApiURL='https://localhost:7224/api/Auth/'; 
 
 
+//Funcion para enviar datos registrado de register a la pagina verificada
 document.addEventListener('DOMContentLoaded', async function () {
     // Código que se ejecutará una vez que el DOM esté completamente cargado
 
@@ -33,3 +34,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     
 });
+
+
+
+
+ 
+
+
